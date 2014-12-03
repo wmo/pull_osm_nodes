@@ -43,18 +43,18 @@ Coffee time again: this file unzips to 4.8G or more, which also takes a while, s
 
 ## Pull out the nodes
 
-Get all the points in a 10km radius around Willemstad, Curacao:
+Get all the points in a 10km radius around Willemstad, Curacao which is situated at coordinates 12.1166, -68.9333 (lat,lon).
 
     ./pull central-america-latest.osm 12.1166 -68.9333 10  > willemstad10k.csv
 
 Coffee time again: scanning this file of nearly 5G takes a while, or what did you expect? Yes, go ahead and grab a final coffee!
 
-Before proceeding to the next step, put on some instrumental music like the great Anoushka Shankar's debut album, which will be very good for your concentration. 
-
 After running the above command, I ended up with 3544 lines of csv data: 
 
     wc -l willemstad10k.csv 
     3544 willemstad10k.csv
+
+Before proceeding with the next step, put on some instrumental music like the great Anoushka Shankar's debut album, which will be very good for your concentration. 
 
 
 ## Interactive querying using IPython & pandas 
@@ -63,11 +63,32 @@ Hopefully you are completely maxed out on coffee now, because it's time to furth
 
 (coming soon)
 
+    import pandas as pd
+    import numpy as np
+    pd.set_option('display.width', 250)
+    pd.set_option('max_colwidth',100)
 
+    # read the data
+    df=pd.read_csv('willemstad10k.csv',header=None,names=['lat','lon','name','marker','dist','tags'])
 
+    # sort the data by distance from lat,lon point
+    df.sort(columns='dist',inplace=True)
 
+    # turn the tags to lower case, this makes it easier to search
+    df['tags']=df.tags.str.lower()
 
+    # make a subset of restaurants
+    r = df[df.tags.str.contains("restau")]
 
+    # give me the chinese restaurants
+    r[df.tags.str.contains("chi")]
 
+                lat        lon                        name marker      dist   tags
+    106   12.105252 -68.933191                   Bon Tapas      #  1.261906   "[{addr:country cw} ..
+    1917  12.120777 -68.897536  Chinese Restaurant and Bar      #  3.915853   "[{addr:country cw} ..
+    1872  12.121817 -68.895336                      Chindy      #  4.167902   "[{addr:country cw} ..
+    2189  12.154782 -68.946812     Santa Maria Food Center      #  4.492558   "[{cuisine chinese} ..
+    1575  12.124456 -68.889972                       Winer      #  4.790816   "[{addr:country cw} ..
+    [5 rows x 6 columns]
 
 
