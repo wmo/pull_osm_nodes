@@ -20,7 +20,7 @@ func main() {
 
 %s osm-file latitude longitude max-distance
 
-    eg. %s abc.osm 18.485493 -69.88211 25
+    eg. %s central-america-latest.osm 12.1166 -68.9333 10 > willemstad10k.csv
 
 The unit for maximum distance is km. 
 `, os.Args[0], os.Args[0])
@@ -95,8 +95,6 @@ func getName(xtsl []XTag) string {
 	// it has tags, but no name, just return the first tag
 	xt := xtsl[0]
 	return fmt.Sprintf("%s %s", xt.K, xt.V)
-	// it has tags more than 1 tags, but no name, let's just return the lot...
-	//return fmt.Sprintf("%v",xtsl)
 }
 
 // define the XML structures used
@@ -117,11 +115,14 @@ type XNode struct {
 	EndOfStream bool
 }
 
+// The following function may be considered a bit dirty, but it does the job.
+// please avert your eyes, in case you are sensitive to such code...
 func pull_nodes(filename string, datachan chan XNode) {
 	// read the file
 	f, err := os.Open(filename)
 	if err != nil {
-		panic(err)
+		fmt.Fprintf(os.Stderr, "Error opening file: %v\n", err)
+		os.Exit(1)
 	}
 	defer f.Close()
 	reader := bufio.NewReader(f)
@@ -138,17 +139,13 @@ func pull_nodes(filename string, datachan chan XNode) {
 			bufb := buf.Bytes()
 			loc := reNodeInline.FindIndex(bufb)
 			if loc != nil {
-				// fmt.Printf("-----\nINLINE: %s\n", bufb[loc[0]:loc[1]])
-				//IGNORE INLINE NODES
+				// Ignore inline nodes
 				buf.Reset()
 				buf.Write(bufb[loc[1]:])
 				continue
 			}
 			loc = reNode.FindIndex(bufb)
 			if loc != nil {
-				//fmt.Printf("-----\nREGULAR: %s\n", bufb[loc[0]:loc[1]])
-
-				//handleNode( bufb[loc[0]:loc[1]] )
 				// create the node, and put it on the chan
 				n := XNode{EndOfStream: false}
 				err := xml.Unmarshal(bufb[loc[0]:loc[1]], &n)
@@ -168,7 +165,7 @@ func pull_nodes(filename string, datachan chan XNode) {
 				continue
 			}
 			if bytes.Index(bufb, []byte("<node")) == -1 {
-				// there is nothing 'node' in the buffer so let's reset it
+				// there is no 'node' in the buffer so let's reset it
 				buf.Reset()
 			}
 			break // nothing found, so get out
@@ -182,22 +179,22 @@ func pull_nodes(filename string, datachan chan XNode) {
 	datachan <- XNode{EndOfStream: true} // we are done!
 }
 
-/* from: http://www.movable-type.co.uk/scripts/latlong.html
+/* Calculate the distance between 2 points, not exact
+   from: http://www.movable-type.co.uk/scripts/latlong.html
    note: φ=lat λ=lon  in RADIANS!
    var x = (λ2-λ1) * Math.cos((φ1+φ2)/2);
    var y = (φ2-φ1);
    var d = Math.sqrt(x*x + y*y) * R;
 */
-
 func rough_distance(lat1, lon1, lat2, lon2 float64) float64 {
 
+	// convert to radians
 	lat1 = lat1 * math.Pi / 180.0
 	lon1 = lon1 * math.Pi / 180.0
 	lat2 = lat2 * math.Pi / 180.0
 	lon2 = lon2 * math.Pi / 180.0
 
-	// convert to radians
-	r := 6371. // km
+	r := 6371.0 // km
 	x := (lon2 - lon1) * math.Cos((lat1+lat2)/2)
 	y := (lat2 - lat1)
 	d := math.Sqrt(x*x+y*y) * r

@@ -4,6 +4,10 @@
 
 ## Compile and build pull.go 
 
+That's easy: 
+
+    go build pull_osm.go
+
 
 ## Download an osm file
 
@@ -25,12 +29,22 @@ Get all the points in a 10km radius around Willemstad, Curacao:
 
     ./pull central-america-latest.osm 12.1166 -68.9333 10  > willemstad10k.csv
 
-Coffee time again: this file unzips to 4.8G or more, so first check if you have enough disk-space. Also, this process takes a couple of minutes, so why not grab a final coffee?
+Coffee time again: scanning this file of nearly 5G takes a while, or what did you expect. So go head and grab a final coffee?
+
+Before proceeding to the next step put on some instrumental music like the great Anoushka Shankar's debut album, which will assist you in concentrating! 
+
+After this was finished, I ended up with 3544 lines of csv data: 
+
+    wc -l willemstad10k.csv 
+    3544 willemstad10k.csv
 
 
-## Interactive queruing using IPython & pandas 
+## Interactive querying using IPython & pandas 
 
-Hopefully you've have topped up on coffee, because now it's time to to filter your data further interactively! 
+Hopefully you are completely maxed out on coffee now, because it's time to filter your data further *interactively*! 
+
+
+
 
 
 
