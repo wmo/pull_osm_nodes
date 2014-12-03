@@ -15,13 +15,48 @@ import (
 
 func main() {
 
-	dataChan := make(chan XNode)
-	//datafile := "/u01/work/20141113_osm_central_america/central-america-latest.osm"
-	datafile := "/u01/work/20141113_osm_central_america/haiti-and-domrep-latest.osm"
-	go pull_nodes(datafile, dataChan)
+	if len(os.Args) != 5 {
+		fmt.Fprintf(os.Stderr, `Usage: 
 
-	lat := 18.485493
-	lon := -69.88211 // santo domingo
+%s osm-file latitude longitude max-distance
+
+    eg. %s abc.osm 18.485493 -69.88211 25
+
+The unit for maximum distance is km. 
+`, os.Args[0], os.Args[0])
+		os.Exit(1)
+	}
+
+	filename := os.Args[1]
+	if !fileExists(filename) {
+		fmt.Fprintf(os.Stderr, "File does not exist: %s\n", os.Args[1])
+		os.Exit(1)
+	}
+
+	lat, err := strconv.ParseFloat(os.Args[2], 64)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Illegal value for latitude: %s\n", os.Args[2])
+		os.Exit(1)
+	}
+
+	lon, err := strconv.ParseFloat(os.Args[3], 64)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Illegal value for longitude: %s\n", os.Args[3])
+		os.Exit(1)
+	}
+
+	dist, err := strconv.ParseFloat(os.Args[4], 64)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Illegal value for max-distance: %s\n", os.Args[4])
+		os.Exit(1)
+	}
+
+	// everything checks out, let's get started!
+
+	// make a datachannel on which to receive the nodes
+	dataChan := make(chan XNode)
+	// launch a goroutine to process the file, and put the nodes on the chan
+	go pull_nodes(filename, dataChan)
 
 	for {
 		n := <-dataChan
@@ -29,19 +64,19 @@ func main() {
 			break
 		}
 		rd := rough_distance(lat, lon, n.Lat, n.Lon)
-		if rd < 35. {
+		if rd < dist {
 			fmt.Printf("%f,%f,%q,\"#\", %f, \"%s\"\n", n.Lat, n.Lon, stripComma(getName(n.XTags)), rd, stripComma(fmt.Sprintf("%v", n.XTags)))
 		}
 	}
 }
 
-func usage() {
-	fmt.Printf(`
-pullnodes osm-file lat lon 
-
-eg.  pullnodes abc.osm 11,0 12,0
-
-`)
+func fileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
 
 func stripComma(in string) string {
