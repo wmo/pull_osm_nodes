@@ -76,7 +76,7 @@ Sort the data by distance from lat,lon point
 
     df.sort(columns='dist',inplace=True)
 
-Turn the tags to lower case, this makes it easier to search
+Turn the tags to lower case, which makes it easier to search
 
     df['tags']=df.tags.str.lower()
 
@@ -86,13 +86,12 @@ Make a subset of only restaurants
 
 Now give me the chinese restaurants
 
-    r[df.tags.str.contains("chi")]
+    r[r.tags.str.contains("chin")]
 
-                lat        lon                        name      dist   tags
-    106   12.105252 -68.933191                   Bon Tapas  1.261906   "[ .. {addr:place punda} ..
-    1917  12.120777 -68.897536  Chinese Restaurant and Bar  3.915853   "[ .. {name chinese restaurant ..
-    1872  12.121817 -68.895336                      Chindy  4.167902   "[ .. {cuisine chinese} .. 
-    2189  12.154782 -68.946812     Santa Maria Food Center  4.492558   "[ .. {cuisine chinese} ..
-    1575  12.124456 -68.889972                       Winer  4.790816   "[ .. {cuisine chinese} ..
+               lat        lon                        name   dist  tags
+    1917  12.120777 -68.897536  Chinese Restaurant and Bar  3.91  "[ .. {name chinese restaurant and bar}..
+    1872  12.121817 -68.895336                      Chindy  4.16  "[ .. {cuisine chinese} ..
+    2189  12.154782 -68.946812     Santa Maria Food Center  4.49  "[ .. {cuisine chinese} ..
+    1575  12.124456 -68.889972                       Winer  4.79  "[ .. {cuisine chinese} ..
 
 
